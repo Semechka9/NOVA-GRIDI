@@ -22,6 +22,7 @@ let selectedPieceIndex = null;
 let draggedPieceIndex = null;
 let dragState = { active:false, pieceIndex:null };
 let dragGhost = null;
+let dragFloat = null;
 let score = 0;
 let themeIndex = 0;
 let themeMode = 'auto';
@@ -72,7 +73,7 @@ function updateScore() {
 }
 function resetGame() {
   board = createBoard(); tray = []; selectedPieceIndex = null; draggedPieceIndex = null;
-  dragState = { active:false, pieceIndex:null }; dragGhost = null; score = 0; themeMode = 'auto'; gameOver = false; placementEffects = []; breakEffects = []; helpfulPieceCooldown = 0;
+  dragState = { active:false, pieceIndex:null }; dragGhost = null; removeDragFloat(); score = 0; themeMode = 'auto'; gameOver = false; placementEffects = []; breakEffects = []; helpfulPieceCooldown = 0;
   applyTheme(0); fillTray(); renderTray(); updateScore(); drawBoard();
 }
 function pieceFitsSomewhere(piece) {
@@ -158,11 +159,12 @@ function renderTray() {
       if (event.pointerType === 'touch') item.draggable = false;
       item.classList.add('dragging');
       item.setPointerCapture?.(event.pointerId);
+      createDragFloat(item, event.clientX, event.clientY);
       updateDragGhost(event.clientX, event.clientY);
       event.preventDefault();
     });
     item.addEventListener('dragstart', (event) => { draggedPieceIndex = index; selectedPieceIndex = index; item.classList.add('dragging'); if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', String(index)); } });
-    item.addEventListener('dragend', () => { draggedPieceIndex = null; dragState.active = false; dragGhost = null; item.classList.remove('dragging'); });
+    item.addEventListener('dragend', () => { draggedPieceIndex = null; dragState.active = false; dragGhost = null; removeDragFloat(); item.classList.remove('dragging'); });
     item.addEventListener('click', () => { if (!gameOver) { selectedPieceIndex = selectedPieceIndex === index ? null : index; renderTray(); } });
     trayEl.appendChild(item);
   });
@@ -220,6 +222,27 @@ function getCanvasPoint(clientX, clientY) {
     x: (clientX - rect.left) * (canvas.width / rect.width),
     y: (clientY - rect.top) * (canvas.height / rect.height),
   };
+}
+
+function createDragFloat(item, clientX, clientY) {
+  removeDragFloat();
+  dragFloat = item.cloneNode(true);
+  dragFloat.className = 'drag-float';
+  dragFloat.setAttribute('aria-hidden', 'true');
+  dragFloat.style.left = `${clientX}px`;
+  dragFloat.style.top = `${clientY - 92}px`;
+  document.body.appendChild(dragFloat);
+}
+
+function updateDragFloat(clientX, clientY) {
+  if (!dragFloat) return;
+  dragFloat.style.left = `${clientX}px`;
+  dragFloat.style.top = `${clientY - 92}px`;
+}
+
+function removeDragFloat() {
+  dragFloat?.remove();
+  dragFloat = null;
 }
 
 function updateDragGhost(clientX, clientY) {
@@ -305,8 +328,8 @@ function drawBoard() {
   if ((placementEffects.length || breakEffects.length) && !effectFrameActive) { effectFrameActive = true; requestAnimationFrame(() => { effectFrameActive = false; drawBoard(); }); }
 }
 canvas.addEventListener('dragover', (event) => event.preventDefault());
-canvas.addEventListener('drop', (event) => { event.preventDefault(); const point = getCanvasPoint(event.clientX, event.clientY); const pieceIndex = Number(event.dataTransfer.getData('text/plain')); placeSelectedPieceAt(point.x, point.y, Number.isInteger(pieceIndex) ? pieceIndex : selectedPieceIndex); dragState.active = false; dragGhost = null; });
-window.addEventListener('pointermove', (event) => { if (!dragState.active) return; updateDragGhost(event.clientX,event.clientY); drawBoard(); });
+canvas.addEventListener('drop', (event) => { event.preventDefault(); const point = getCanvasPoint(event.clientX, event.clientY); const pieceIndex = Number(event.dataTransfer.getData('text/plain')); placeSelectedPieceAt(point.x, point.y, Number.isInteger(pieceIndex) ? pieceIndex : selectedPieceIndex); dragState.active = false; dragGhost = null; removeDragFloat(); });
+window.addEventListener('pointermove', (event) => { if (!dragState.active) return; updateDragFloat(event.clientX, event.clientY); updateDragGhost(event.clientX,event.clientY); drawBoard(); });
 function finishPointerDrag(clientX, clientY) {
   if (!dragState.active) return;
   const rect = canvas.getBoundingClientRect();
@@ -318,6 +341,7 @@ function finishPointerDrag(clientX, clientY) {
   dragState.active = false;
   pointerDragStarted = false;
   dragGhost = null;
+  removeDragFloat();
   drawBoard();
 }
 canvas.addEventListener('pointerup', (event) => finishPointerDrag(event.clientX, event.clientY));

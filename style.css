@@ -79,12 +79,14 @@ h1 { margin: 4px 0 0; font-size: 1.08rem; line-height: 1; letter-spacing: -.04em
 .piece-item:hover { transform: translateY(-3px); border-color: var(--accent-soft); box-shadow: 0 10px 20px rgba(38,45,58,.08); }
 .piece-item:active { cursor: grabbing; }
 .piece-item.dragging { transform: translateY(-6px) scale(1.04); opacity: .62; box-shadow: 0 14px 24px var(--accent-soft); }
+.drag-float { position: fixed; z-index: 20; width: 104px; min-height: 104px; padding: 10px; border: 1px solid var(--accent); border-radius: 18px; background: var(--surface-strong); box-shadow: 0 16px 30px rgba(23,26,31,.2), 0 0 0 5px var(--accent-soft); pointer-events: none; transform: translate(-50%, -50%) scale(1.08); display: flex; align-items: center; justify-content: center; opacity: .96; }
+.drag-float .piece-grid { transform: scale(1.12); }
 .piece-item.selected { border-color: var(--accent); animation: pulseSelect 1.2s ease-in-out infinite; }
 .piece-grid { display: grid; gap: 4px; place-items: center; padding: 5px; border-radius: 11px; background: rgba(23,26,31,.045); animation: popIn .3s ease-out; }
 .piece-cell { width: 13px; height: 13px; border-radius: 4px; background: rgba(23,26,31,.035); box-shadow: inset 1px 1px 0 rgba(255,255,255,.52), inset -1px -1px 0 rgba(0,0,0,.13), 0 2px 4px rgba(38,45,58,.12); transition: transform .15s ease, box-shadow .15s ease; }
 .piece-cell[style*="background"] { border: 1px solid rgba(255,255,255,.3); }
 .piece-item:hover .piece-cell { transform: scale(1.05); }
 
-@media (max-width: 480px) { .game-wrap { padding: 15px; border-radius: 22px; } .hud { gap: 7px; margin-bottom: 14px; } .brand-mark { width: 24px; height: 24px; } h1 { font-size: 1rem; } .theme-control select { max-width: 58px; } .pieces-hint { display: none; } .piece-item { min-height: 84px; } }
+@media (max-width: 480px) { .game-wrap { padding: 15px; border-radius: 22px; } .hud { gap: 7px; margin-bottom: 14px; } .brand-mark { width: 24px; height: 24px; } h1 { font-size: 1rem; } .theme-control select { max-width: 58px; } .pieces-hint { display: none; } .piece-item { min-height: 84px; } .drag-float { width: 96px; min-height: 96px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 @media (max-width: 480px) and (orientation: landscape) { body { padding: 10px; } .game-wrap { max-width: 620px; } .board-shell { padding-bottom: 10px; } #game { width: min(52vh, 360px); } }
