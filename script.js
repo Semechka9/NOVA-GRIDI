@@ -32,6 +32,7 @@ let effectFrameActive = false;
 let helpfulPieceCooldown = 0;
 const HELPFUL_PIECE_CHANCE = 0.58;
 const THEME_SCORE_STEP = 200;
+let pointerDragStarted = false;
 function createBoard() { return Array.from({length:BOARD_SIZE}, () => Array(BOARD_SIZE).fill(null)); }
 function randomColor() { return COLORS[Math.floor(Math.random() * COLORS.length)]; }
 
@@ -152,7 +153,9 @@ function renderTray() {
       if (gameOver) return;
       draggedPieceIndex = index;
       selectedPieceIndex = index;
-      dragState = {active:true, pieceIndex:index};
+      dragState = {active:true, pieceIndex:index, pointerId:event.pointerId};
+      pointerDragStarted = true;
+      if (event.pointerType === 'touch') item.draggable = false;
       item.classList.add('dragging');
       item.setPointerCapture?.(event.pointerId);
       updateDragGhost(event.clientX, event.clientY);
@@ -207,7 +210,7 @@ function createBreakEffect(centerX, centerY, direction) {
 }
 function placeSelectedPieceAt(x, y, pieceIndex = selectedPieceIndex) {
   if (pieceIndex === null || gameOver) return; const piece = tray[pieceIndex]; if (!piece) return;
-  const originX = Math.floor(x / CELL_SIZE) - Math.floor(piece.matrix[0].length / 2); const originY = Math.floor(y / CELL_SIZE) - Math.floor(piece.matrix.length / 2);
+  const originX = Math.round(x / CELL_SIZE - piece.matrix[0].length / 2); const originY = Math.round(y / CELL_SIZE - piece.matrix.length / 2);
   if (!canPlace(piece, originX, originY)) return; placePieceOnBoard(piece, originX, originY); tray.splice(pieceIndex, 1); fillTray(); selectedPieceIndex = null; draggedPieceIndex = null; renderTray(); drawBoard();
 }
 
@@ -221,9 +224,9 @@ function getCanvasPoint(clientX, clientY) {
 
 function updateDragGhost(clientX, clientY) {
   if (!dragState.active || dragState.pieceIndex === null) { dragGhost = null; return; }
-  const point = getCanvasPoint(clientX, clientY); const cellX = Math.floor(point.x / CELL_SIZE); const cellY = Math.floor(point.y / CELL_SIZE); const piece = tray[dragState.pieceIndex];
+  const point = getCanvasPoint(clientX, clientY); const piece = tray[dragState.pieceIndex];
   if (!piece) { dragGhost = null; return; }
-  const originX = cellX - Math.floor(piece.matrix[0].length / 2); const originY = cellY - Math.floor(piece.matrix.length / 2); dragGhost = {piece,originX,originY,valid:canPlace(piece,originX,originY)};
+  const originX = Math.round(point.x / CELL_SIZE - piece.matrix[0].length / 2); const originY = Math.round(point.y / CELL_SIZE - piece.matrix.length / 2); dragGhost = {piece,originX,originY,valid:canPlace(piece,originX,originY)};
 }
 function drawDragGhost() {
   if (!dragGhost) return; const {piece,originX,originY,valid} = dragGhost; ctx.globalAlpha = valid ? .5 : .28;
@@ -313,6 +316,7 @@ function finishPointerDrag(clientX, clientY) {
     placeSelectedPieceAt(point.x, point.y, dragState.pieceIndex);
   }
   dragState.active = false;
+  pointerDragStarted = false;
   dragGhost = null;
   drawBoard();
 }

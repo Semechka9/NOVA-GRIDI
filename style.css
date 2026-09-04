@@ -75,7 +75,7 @@ h1 { margin: 4px 0 0; font-size: 1.08rem; line-height: 1; letter-spacing: -.04em
 .pieces-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; color: var(--text); font-size: .76rem; font-weight: 800; }
 .pieces-hint { color: var(--muted); font-size: .62rem; font-weight: 600; }
 .pieces-tray { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
-.piece-item { min-height: 92px; padding: 8px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.48); cursor: grab; display: flex; align-items: center; justify-content: center; touch-action: none; transition: transform .2s cubic-bezier(.2,.8,.2,1), border-color .2s ease, box-shadow .2s ease, opacity .2s ease; will-change: transform; }
+.piece-item { min-height: 92px; padding: 8px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.48); cursor: grab; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: transform .2s cubic-bezier(.2,.8,.2,1), border-color .2s ease, box-shadow .2s ease, opacity .2s ease; will-change: transform; }
 .piece-item:hover { transform: translateY(-3px); border-color: var(--accent-soft); box-shadow: 0 10px 20px rgba(38,45,58,.08); }
 .piece-item:active { cursor: grabbing; }
 .piece-item.dragging { transform: translateY(-6px) scale(1.04); opacity: .62; box-shadow: 0 14px 24px var(--accent-soft); }
