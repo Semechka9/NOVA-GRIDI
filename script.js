@@ -149,7 +149,14 @@ function renderTray() {
     }
     item.draggable = true; item.appendChild(grid);
     item.addEventListener('pointerdown', (event) => {
-      if (gameOver) return; draggedPieceIndex = index; selectedPieceIndex = index; dragState = {active:true, pieceIndex:index}; item.classList.add('dragging'); updateDragGhost(event.clientX, event.clientY); renderTray(); event.preventDefault();
+      if (gameOver) return;
+      draggedPieceIndex = index;
+      selectedPieceIndex = index;
+      dragState = {active:true, pieceIndex:index};
+      item.classList.add('dragging');
+      item.setPointerCapture?.(event.pointerId);
+      updateDragGhost(event.clientX, event.clientY);
+      event.preventDefault();
     });
     item.addEventListener('dragstart', (event) => { draggedPieceIndex = index; selectedPieceIndex = index; item.classList.add('dragging'); if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', String(index)); } });
     item.addEventListener('dragend', () => { draggedPieceIndex = null; dragState.active = false; dragGhost = null; item.classList.remove('dragging'); });
@@ -297,8 +304,20 @@ function drawBoard() {
 canvas.addEventListener('dragover', (event) => event.preventDefault());
 canvas.addEventListener('drop', (event) => { event.preventDefault(); const point = getCanvasPoint(event.clientX, event.clientY); const pieceIndex = Number(event.dataTransfer.getData('text/plain')); placeSelectedPieceAt(point.x, point.y, Number.isInteger(pieceIndex) ? pieceIndex : selectedPieceIndex); dragState.active = false; dragGhost = null; });
 window.addEventListener('pointermove', (event) => { if (!dragState.active) return; updateDragGhost(event.clientX,event.clientY); drawBoard(); });
-canvas.addEventListener('pointerup', (event) => { if (!dragState.active) return; const point = getCanvasPoint(event.clientX, event.clientY); placeSelectedPieceAt(point.x, point.y, dragState.pieceIndex); dragState.active = false; dragGhost = null; });
-window.addEventListener('pointerup', () => { dragState.active = false; dragGhost = null; drawBoard(); });
+function finishPointerDrag(clientX, clientY) {
+  if (!dragState.active) return;
+  const rect = canvas.getBoundingClientRect();
+  const insideCanvas = clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+  if (insideCanvas) {
+    const point = getCanvasPoint(clientX, clientY);
+    placeSelectedPieceAt(point.x, point.y, dragState.pieceIndex);
+  }
+  dragState.active = false;
+  dragGhost = null;
+  drawBoard();
+}
+canvas.addEventListener('pointerup', (event) => finishPointerDrag(event.clientX, event.clientY));
+window.addEventListener('pointerup', (event) => finishPointerDrag(event.clientX, event.clientY));
 canvas.addEventListener('click', (event) => { if (selectedPieceIndex === null) return; const point = getCanvasPoint(event.clientX, event.clientY); placeSelectedPieceAt(point.x, point.y); });
 newGameBtn.addEventListener('click', resetGame);
 themeSelect.addEventListener('change', (event) => {
